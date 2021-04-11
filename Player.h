@@ -1,13 +1,14 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
 #include "Bullet.h"
 #include "Asteroid.h"
-#include <iostream>
 #include <deque>
 
 #define INTIAL_PLAYER_HEALTH 3
 #define NUMBER_OF_BULLETS 5
 
+// Player State
 enum playerState
 {
 	STATE_STATIONARY,
@@ -18,33 +19,34 @@ enum playerState
 
 class Player : public sf::Sprite
 {
+
 public:
 	Player(const sf::Texture& _playerTexture, const sf::Texture& _bulletTexture);
 	~Player();
 private:
 
-	int health;
-	int score;
+	// General
+	int health, score;
+	const float rotationSpeed = 0.25f;
 	const sf::Texture playerTexture;
 	const sf::Texture bulletTexture;
-
-
-	sf::Clock shootTimer;
-	const float shootDelay = 400.f;
+	// Shooting
+	sf::Clock shotTimer;
+	const float shootDelay = 100.f;
 	bool isFirstBullet = true;
 	const int numberOfBullets = NUMBER_OF_BULLETS;
 
-	sf::Clock speedBoostTimer;
-	const float speedBostTimeRange = 600.f;
+	// Rocket thrust
+	sf::Clock thrustTimer;
+	const float speedBostTimeRange = 800.f;
 	bool firstSpeedBost = true;
 	const int boostFactor = 3;
 
-	const float rotationSpeed = 0.25f;
-
 public:
+
+	playerState currentState = STATE_STATIONARY; // intial state
 	std::deque<Bullet*> readyBullets;
 	std::deque<Bullet*> movingBullets;
-	playerState currentState = STATE_STATIONARY; // intial player state
 
 public:
 
@@ -56,17 +58,20 @@ public:
 	void movePlayer(const float dt);
 	void rotatePlayer(const float dt , int direction);
 	void moveBullets(const float dt);
-	void startSpeedBoost();
+	void startRocketThrustTimer();
 	void slowDown();
+
 	// Collision
 	void playerCollides(Asteroid* asteroid);
 	void bulletCollides(Asteroid* asteroid);
 
-	// Getters&Setters
+	// G&S
 	int getHealth();
 	int getScore();
 	void resetParameters();
+
 private:
+	void setUp();
 	void createBullets();
 };
 

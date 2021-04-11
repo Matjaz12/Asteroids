@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Player.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
@@ -21,11 +22,23 @@ public:
 	~Game();
 private:
 	
-	// General
+	// Components
+	int width; int height;
 	sf::RenderWindow* window = nullptr;
 	sf::Event event;
 	sf::Font font;
-	int width; int height;
+
+	// Audio
+	sf::SoundBuffer buffer1;
+	sf::Sound keyPressedSound;
+	sf::SoundBuffer buffer2;
+	sf::Sound shotSound;
+	sf::SoundBuffer buffer3;
+	sf::Sound accelerationSound;
+	sf::SoundBuffer buffer4;
+	sf::Sound largeExplosion;
+
+	// Application State
 
 	enum appState
 	{
@@ -55,24 +68,15 @@ private:
 	sf::Texture asteroidTextureLevel0;
 	sf::Texture asteroidTextureLevel1;
 
-	// Audio
-
-	sf::SoundBuffer buffer1;
-	sf::Sound keyPressedSound;
-	sf::SoundBuffer buffer2;
-	sf::Sound shotSound;
-	sf::SoundBuffer buffer3;
-	sf::Sound accelerationSound;
-	sf::SoundBuffer buffer4;
-	sf::Sound largeExplosion;
-
 public:
 	void run();
-
+	void deallocateMemory();
 private:
 	// Render
 	void render(const float dt);
-	void handleInput(const float dt);
+	void handleUserInput(const float dt);
+	void menuMoveUp();
+	void menuMoveDown();
 	void switchAppState();
 
 private:
@@ -91,11 +95,11 @@ private:
 	// Game Logic
 	void checkForCollision();
 	void isGameOver();
-	void resetGame();
+	bool isNewBestScore();
 
 	// File I/O
 	void getScoreList();
-	void loadTexture();
+	void loadTextures();
 	void saveScore();
 	void loadAudio();
 };

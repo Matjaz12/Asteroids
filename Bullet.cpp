@@ -10,6 +10,9 @@ texture{ _texture }
 
 void Bullet::intialize(const float _angle, const sf::Vector2f& startPosition)
 {
+	/*
+	Function saves the angle at which the bullet was shot and its startingPosition
+	*/
 	angle = _angle;
 	rotate(angle);
 	setPosition(startPosition);

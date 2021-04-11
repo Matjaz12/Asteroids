@@ -3,19 +3,31 @@
 
 
 Game::Game(const int _width, const int _height )
-	: width{_width}, height{_height}
+	: 
+	width{_width}, height{_height},
+	currentAppState{ STATE_MENU }
 {
-	window = new sf::RenderWindow(sf::VideoMode(_width, _height), "title" , sf::Style::Titlebar | sf::Style::Close);
-	currentAppState = STATE_MENU;
+	// Create a Non Resizable window
+	window = new sf::RenderWindow(sf::VideoMode(_width, _height), "Asteroids Game" , sf::Style::Titlebar | sf::Style::Close);
+	window->setFramerateLimit(FPS);
 
+	// Try to Load necessary Files
+	loadTextures();
 	loadAudio();
 	setupMainWindow();
 }
 
 Game::~Game()
 {
-	delete player;
 	delete window;
+	deallocateMemory();
+}
+
+// Rendering
+
+void Game::deallocateMemory()
+{
+	delete player;
 	for (auto* asteroid : asteroids)
 	{
 		delete asteroid;
@@ -23,28 +35,31 @@ Game::~Game()
 	asteroids.clear();
 }
 
-// Rendering
 void Game::run()
 {
-	sf::Clock clock;
-	window->setFramerateLimit(FPS);
+	/*
+	Function contains the Main Game Loop()
+	it takes care of Game Logic
+	*/
 
+	sf::Clock clock;
 	while (window->isOpen())
 	{
 		float dt = clock.restart().asMilliseconds(); // restarts the timer and returns the time since last restart
-		
-		if(currentAppState == STATE_GAME)
-			isGameOver();
+		if(currentAppState == STATE_GAME) isGameOver();
 		checkForCollision();
-		render(dt);
+		render(dt); // pass dt, to render function to ensure Frame Indepented Game Play
 	
 	}
 }
 
 void Game::render(const float dt)
 {
-
-	handleInput(dt);
+	/*
+	Function calls the appropriate draw member function which 
+	corresponds to the Current Application State
+	*/
+	handleUserInput(dt);
 
 	window->clear();
 
@@ -64,38 +79,32 @@ void Game::render(const float dt)
 	window->display();
 }
 
-void Game::handleInput(const float dt)
+void Game::handleUserInput(const float dt)
 {
+	/*
+	Function takes care of User Input, it modifies the state of the Game Object
+	the meaning of specific key events changes based on the current Application State
+	*/
 	while (window->pollEvent(event))
 	{
-		if (event.type == sf::Event::Closed) window->close();
+		if (event.type == sf::Event::Closed)
+			window->close();
 		
 		switch (currentAppState)
 		{
+
 		case STATE_MENU:
 
 			if (event.type == event.KeyReleased)
 			{
-
 				keyPressedSound.play(); 
-
 				switch (event.key.code)
 				{
 				case sf::Keyboard::Up:
-					if (selected - 1 >= 1)
-					{
-						menuComponents[selected].setFillColor(sf::Color::White);
-						selected--;
-						menuComponents[selected].setFillColor(sf::Color::Red);
-					}
+					menuMoveUp(); 
 					break;
 				case sf::Keyboard::Down:
-					if (selected + 1 < NUM_OF_MAIN_WINDOW_COMPONENTS)
-					{
-						menuComponents[selected].setFillColor(sf::Color::White);
-						selected++;
-						menuComponents[selected].setFillColor(sf::Color::Red);
-					}
+					menuMoveDown();
 					break;
 				case sf::Keyboard::Enter:
 					switchAppState();
@@ -106,6 +115,7 @@ void Game::handleInput(const float dt)
 				}
 			}
 			break;
+
 		case STATE_SCORELIST:
 			if (event.type == event.KeyReleased)
 			{
@@ -114,31 +124,31 @@ void Game::handleInput(const float dt)
 				switch (event.key.code)
 				{
 					case sf::Keyboard::Enter:
-						currentAppState = STATE_MENU; // probi integrairat v switchAppstate ->selected = 0
+						currentAppState = STATE_MENU; 
 						break;
 					case sf::Keyboard::Space:
 						currentAppState = STATE_MENU;
 						break;
 				}
 			}
+		default:
+			break;
 		}
-	}// event Loop()
+	}// Event Loop()
 
 	if (currentAppState == STATE_GAME)
 	{
-
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-			player->rotatePlayer(dt, -1);
+			player->rotatePlayer(dt, -1); // rotatePlayer in negative direction
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-			player->rotatePlayer(dt, +1);
+			player->rotatePlayer(dt, +1); // rotatePlayer in positive direction
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 		{
-			if (player->currentState == STATE_STATIONARY)
+			if (player->currentState == STATE_STATIONARY) // if player just pressed the Up Arrow Key
 			{
-				player->startSpeedBoost();
+				player->startRocketThrustTimer(); // start the thrust timer
 				accelerationSound.play();
-				std::cout << "Booooost...\n";
 			}
 			player->movePlayer(dt);
 		}
@@ -149,11 +159,42 @@ void Game::handleInput(const float dt)
 			player->shootBullet();
 			shotSound.play();
 		}
+	}// currentAppState == STATE_GAME
+
+}
+
+void Game::menuMoveUp()
+{
+	/*
+	Switches the currently selected Main Menu Component
+	*/
+	if (selected - 1 >= 1)
+	{
+		menuComponents[selected].setFillColor(sf::Color::White);
+		selected--;
+		menuComponents[selected].setFillColor(sf::Color::Red);
+	}
+}
+
+void Game::menuMoveDown()
+{
+	/*
+	Switches the currently selected Main Menu Component
+	*/
+	if (selected + 1 < NUM_OF_MAIN_WINDOW_COMPONENTS)
+	{
+		menuComponents[selected].setFillColor(sf::Color::White);
+		selected++;
+		menuComponents[selected].setFillColor(sf::Color::Red);
 	}
 }
 
 void Game::switchAppState()
 {
+	/*
+	Function switches the current Application State,
+	and calls the necessary member functions before we draw the window
+	*/
 	switch (selected)
 	{
 	case 0:
@@ -163,6 +204,7 @@ void Game::switchAppState()
 		currentAppState = STATE_GAME;
 		break;
 	case 2:
+		getScoreList();
 		setupScoreWindow();
 		currentAppState = STATE_SCORELIST;
 		break;
@@ -177,12 +219,14 @@ void Game::switchAppState()
 // Setup
 void Game::setupMainWindow() 
 {
+	/*
+	Function creates and intilaizes Main Menu Components
+	*/
+
 	if (!font.loadFromFile("assets//gameFont.ttf"))
 	{
-		// handle error
-		std::cout << "Error loading font!\n";
+		throw std::exception();
 	}
-
 
 	for (int i{ 0 }; i < NUM_OF_MAIN_WINDOW_COMPONENTS; i++)
 	{
@@ -210,9 +254,9 @@ void Game::setupMainWindow()
 
 void Game::setupScoreWindow()
 {
-
-	getScoreList();
-
+	/*
+	Function creates and intilaizes Score Window Components
+	*/
 
 	for (int i{ 0 }; i < NUM_OF_SCORE_WINDOW_COMPONENTS; i++)
 	{
@@ -239,18 +283,15 @@ void Game::setupScoreWindow()
 
 void Game::setupGame()
 {
-	
-	if (!gameStarted)
-		loadTexture();
-
-
+	/*
+	Function creates all game objects: the player (that creates bullets) and the
+	asteroids, it also creates the game window components
+	*/
 	player = new Player(playerTexture, bulletTexture);
 
 	for (int i{ 0 }; i < NUM_OF_ASTEROIDS; i++)
 		asteroids.push_back(new Asteroid(asteroidTextureLevel0 , asteroidTextureLevel1));
 	
-	// Setup game window components
-
 	for (int i{ 0 }; i < NUM_OF_GAME_WINDOW_COMPONENTS; i++)
 	{
 		gameComponents[i].setFont(font);
@@ -273,14 +314,21 @@ void Game::setupGame()
 // Draw
 void Game::drawMenuWindow()
 {
-	for (int i{ 0 }; i < NUM_OF_MAIN_WINDOW_COMPONENTS; i++)
+	/*
+	Function draws all Main Menu Components
+	*/
+	for (auto& menuComponent : menuComponents)
 	{
-		window->draw(menuComponents[i]);
+		window->draw(menuComponent);
 	}
 }
 
 void Game::drawScoreWindow()
 {
+	/*
+	Function draws all Main Menu Components
+	*/
+
 	for (auto& scoreComponent : scoreComponents)
 	{
 		window->draw(scoreComponent);
@@ -289,7 +337,10 @@ void Game::drawScoreWindow()
 
 void Game::drawGameWindow(const float dt)
 {
-
+	/*
+	Function draws all Game Window components
+	and all Game Objects
+	*/
 	for (int i{ 0 }; i < NUM_OF_GAME_WINDOW_COMPONENTS; i++)
 	{
 		if (i == 0)
@@ -301,14 +352,18 @@ void Game::drawGameWindow(const float dt)
 		window->draw(gameComponents[i]);
 	}
 
-	if (!player->movingBullets.empty())
+	// draw player
+	window->draw(*player);
+
+	// draw Bullets 
+	if ( !player->movingBullets.empty() ) // if there are any bullets flying around
 	{
 		player->moveBullets(dt);
 		for(auto* bullet : player->movingBullets)
 			window->draw(*bullet);
 	}
 
-	window->draw(*player);
+	// draw Asteroids
 	for (auto* asteroid : asteroids)
 	{
 		asteroid->moveAsteroid(dt);
@@ -320,107 +375,121 @@ void Game::drawGameWindow(const float dt)
 
 void Game::checkForCollision()
 {
+	/*
+	Function checks for collision between Player and all Asteroids
+	and collision between currently moving bullets and all Asteroids
+	*/
 	int index = 0;
 	int deadAsteroidIndex = -1;
+
 	for (auto* asteroid : asteroids)
 	{
-		player->playerCollides(asteroid); // checks for player asteroid collision
+		player->playerCollides(asteroid);
+
 		int levelBeforeCollisionCheck = asteroid->getLevel();
-		if (!player->movingBullets.empty())
-			player->bulletCollides(asteroid); // checks for bullet asteroid collsion
-		if (asteroid->getLevel() != levelBeforeCollisionCheck)
+		if (!player->movingBullets.empty()) // if there are any bullets flying around
+			player->bulletCollides(asteroid);
+		if (asteroid->getLevel() != levelBeforeCollisionCheck) // if level of asteroid changed, collision accured, so we save the asteroid we want to destroy -> generate new ones
 		{
 			deadAsteroidIndex = index;
 			largeExplosion.play();
 		}
-
 		index++;
 	}
-	if (deadAsteroidIndex != -1) 
+	if (deadAsteroidIndex != -1) // if asteroid was just destroyed
 	{
-
-		asteroids.push_back(new Asteroid(asteroidTextureLevel0,asteroidTextureLevel1,0));
-		asteroids.back()->setPosition(asteroids[deadAsteroidIndex]->getPosition());
+		asteroids.push_back(new Asteroid(asteroidTextureLevel0,asteroidTextureLevel1,0)); // create another asteroid
+		asteroids.back()->setPosition(asteroids[deadAsteroidIndex]->getPosition()); 
 		deadAsteroidIndex = -1;
 	}
 }
 
 void Game::isGameOver()
 {
+	/*
+	Function checks if Game is Over, in case of new best score
+	it saves the score in appropirate position and resets the game
+	*/
 	if (player->getHealth() <= 0)
 	{
-		bool newBest = false;
-		if (scoreArray.empty())
+		if (scoreArray.empty()) // if user has not opened the score window yet
 			getScoreList();
 
-		if (scoreArray.size() < NUM_OF_SCORE_COMPONENTS)
-		{
-			scoreArray.push_back(std::to_string(player->getScore()));
-			newBest = true;
-		}
-		else if (player->getScore() > std::stoi(scoreArray[NUM_OF_SCORE_COMPONENTS - 1]))
-		{
-			scoreArray[NUM_OF_SCORE_COMPONENTS - 1] = std::to_string(player->getScore());
-			newBest = true;
-		}
-		if (newBest)
+		if (isNewBestScore())
 		{
 			std::sort(scoreArray.begin(), scoreArray.end(), [](const std::string& strNum1, const std::string& strNum2)
-				{
-					if (std::stoi(strNum1) > std::stoi(strNum2))
-						return true;
-					return false;
-				});
+			{
+				if (std::stoi(strNum1) > std::stoi(strNum2))
+					return true;
+				return false;
+			});
 			saveScore();
 		}
-
-		// reset game and go to the main menu
-		resetGame();
+		// If Game Over Deallocate Memory and switch the game state
+		deallocateMemory();
 		currentAppState = STATE_MENU;
 	}
 }
 
-void Game::resetGame()
+bool Game::isNewBestScore()
 {
-	delete player;
-	for (auto* asteroid : asteroids)
+	bool newBest = false;
+	if (scoreArray.size() < NUM_OF_SCORE_COMPONENTS)
 	{
-		delete asteroid;
+		scoreArray.push_back(std::to_string(player->getScore()));
+		newBest = true;
 	}
-	asteroids.clear();
-}
+	else if (player->getScore() > std::stoi(scoreArray[NUM_OF_SCORE_COMPONENTS - 1]))
+	{
+		scoreArray[NUM_OF_SCORE_COMPONENTS - 1] = std::to_string(player->getScore());
+		newBest = true;
+	}
 
+	return newBest;
+}
 // File I/0
 
 void Game::getScoreList()
 {
+	/*
+	Function opens the score.txt file and saves the list of current best scores to a vector
+	*/
 	std::ifstream fileIn{ "assets\\score.txt" };
 	if (!fileIn)
 	{
 		std::cerr << "Error opening score.txt\n";
 	}
-	while (fileIn)
+	else
 	{
-		std::string strInput;
-		fileIn >> strInput;
-		if (strInput != "")
-			scoreArray.push_back(strInput);
-	}
+		while (fileIn)
+		{
+			std::string strInput;
+			fileIn >> strInput;
+			if (strInput != "")
+				scoreArray.push_back(strInput);
+		}
 
-	fileIn.close();
+		fileIn.close();
+	}
 }
 
 void Game::saveScore()
 {
+	/*
+	Function saves the new best score to the score.txt file
+	*/
 	std::ofstream fileOut{ "assets\\score.txt" };
 	if (!fileOut)
 	{
 		std::cerr << "Error opening score.txt\n";
 	}
-	for (int i{0} ; i < scoreArray.size() ; i++)
-		fileOut << scoreArray[i] << "\n";
+	else
+	{
+		for (int i{ 0 }; i < scoreArray.size(); i++)
+			fileOut << scoreArray[i] << "\n";
 
-	fileOut.close();
+		fileOut.close();
+	}
 }
 
 void Game::loadAudio()
@@ -428,54 +497,48 @@ void Game::loadAudio()
 
 	if (!buffer1.loadFromFile("assets//selectAudio.wav"))
 	{
-		std::cout << "Error loading audio file\n";
+		throw std::exception();
 	}
 	keyPressedSound.setBuffer(buffer1);
 
 	if (!buffer2.loadFromFile("assets//shotAudio.wav"))
 	{
-		std::cout << "Error loading audio file\n";
+		throw std::exception();
 	}
 	shotSound.setBuffer(buffer2);
 
 	if (!buffer3.loadFromFile("assets//accelerationAudio.wav"))
 	{
-		std::cout << "Error loading audio file\n";
+		throw std::exception();
 	}
 	accelerationSound.setBuffer(buffer3);
 
 	if (!buffer4.loadFromFile("assets//bangLarge.wav"))
 	{
-		std::cout << "Error loading audio file\n";
+		throw std::exception();
 	}
 	largeExplosion.setBuffer(buffer4);
 
 }
 
-void Game::loadTexture()
+void Game::loadTextures()
 {
-	if (!playerTexture.loadFromFile("assets//triangle.png"))
+	if (!playerTexture.loadFromFile("assets//player.png"))
 	{
-		// handle error
-		std::cout << "Failed loading asteroid texture!\n";
-
+		throw std::exception();
 	}
 	if (!bulletTexture.loadFromFile("assets//bullet.png"))
 	{
-		// handle error
-		std::cout << "Failed loading bullet texture!\n";
-
+		throw std::exception();
 	}
 
 	if (!asteroidTextureLevel0.loadFromFile("assets//asteroid_level0.png"))
 	{
-		// handle error
-		std::cout << "Failed loading asteroid texture!\n";
+		throw std::exception();
 	}
 
 	if (!asteroidTextureLevel1.loadFromFile("assets//asteroid_level1.png"))
 	{
-		// handle error
-		std::cout << "Failed loading asteroid texture!\n";
+		throw std::exception();
 	}
 }

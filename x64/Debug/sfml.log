@@ -1,15 +1,13 @@
 ﻿  Game.cpp
-D:\DesktopMT\FE\sfml\Game.cpp(34,12): warning C4244: 'initializing': conversion from 'sf::Int32' to 'float', possible loss of data
-D:\DesktopMT\FE\sfml\Game.cpp(206,149): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+D:\DesktopMT\FE\sfml\Game.cpp(48,12): warning C4244: 'initializing': conversion from 'sf::Int32' to 'float', possible loss of data
+D:\DesktopMT\FE\sfml\Game.cpp(250,149): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-D:\DesktopMT\FE\sfml\Game.cpp(236,152): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+D:\DesktopMT\FE\sfml\Game.cpp(280,152): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-  Source.cpp
-  Generating Code...
   sfml.vcxproj -> D:\DesktopMT\FE\sfml\x64\Debug\sfml.exe

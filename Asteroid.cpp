@@ -8,23 +8,28 @@ Asteroid::Asteroid(const sf::Texture& _asteroidTextureLevel0 , const sf::Texture
 	level{_level}
 {
 	scale(sf::Vector2f(0.060f, 0.060f));
-	setOrigin(300.0f + getLocalBounds().width / 2, 300.f + getLocalBounds().height / 2);
-
+	setOrigin(getPosition().x + getLocalBounds().width / 2, getPosition().y + getLocalBounds().height / 2);
 	intializeAsteroid();
-}
-
-int getRandomNumber(int min, int max)
-{
-	static constexpr double fraction{ 1.0 / (RAND_MAX + 1.0) };  
-	return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
 }
 
 Asteroid::~Asteroid()
 {
 }
 
+int getRandomNumber(int min, int max)
+{
+	/*
+	Retruns random number in range(min,max)
+	*/
+	static constexpr double fraction{ 1.0 / (RAND_MAX + 1.0) };  
+	return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
+}
+
 void Asteroid::moveAsteroid(const float dt)
 {
+	/*
+	Function moves the asteroid in its direction, and does some bound checking
+	*/
 	move(dt*speed*direction);
 
 	if (getPosition().x > 1000)		 setPosition(sf::Vector2f(0, getPosition().y));
@@ -35,6 +40,9 @@ void Asteroid::moveAsteroid(const float dt)
 
 void Asteroid::intializeAsteroid()
 {
+	/*
+	Function intializes Asteroid based on its current level
+	*/
 	switch (level)
 	{
 	case 0:
@@ -46,7 +54,7 @@ void Asteroid::intializeAsteroid()
 	case 1:
 		setTexture(asteroidTextureLevel1);
 		direction = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX) ,  static_cast <float> (rand()) / static_cast <float> (RAND_MAX) }; // range 0.0f - 1.0f
-		speed = 0.20f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.30f - 0.20f)));
+		speed = 0.15f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (0.25f - 0.15f)));
 		setPosition(
 			0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (800.0f - 0.0f))),
 			0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (800.0f - 0.0f)))
@@ -61,6 +69,9 @@ void Asteroid::intializeAsteroid()
 
 void Asteroid::downSize()
 {
+	/*
+	Function calls intializeAsteroid with appropirate level
+	*/
 	if (level == 1)
 	{
 		level -= 1;
@@ -68,8 +79,6 @@ void Asteroid::downSize()
 	}
 	else if (level == 0)
 	{
-		// create big asteroid from the small one
-		std::cout << "Reviving the small guy\n";
 		level += 1;
 		intializeAsteroid();
 	}
