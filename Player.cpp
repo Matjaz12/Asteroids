@@ -134,6 +134,7 @@ void Player::slowDown()
 {
 	currentState = STATE_STATIONARY;
 }
+
 void Player::moveBullets(const float dt)
 {
 	/*
@@ -173,9 +174,14 @@ void Player::playerCollides(Asteroid* asteroid)
 	*/
 	if (getGlobalBounds().intersects(asteroid->getGlobalBounds()))
 	{
-		if(health != 0)
+		if (health != 0 && asteroid->madeDamage == false)
+		{
 			health--;
+			asteroid->madeDamage = true;
+		}
 	}
+	else if (asteroid->madeDamage == true)
+		asteroid->madeDamage = false;
 }
 
 void Player::bulletCollides(Asteroid* asteroid)

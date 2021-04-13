@@ -412,10 +412,23 @@ void Game::isGameOver()
 	*/
 	if (player->getHealth() <= 0)
 	{
+
 		if (scoreArray.empty()) // if user has not opened the score window yet
 			getScoreList();
 
-		if (isNewBestScore())
+		bool newBest = false;
+		if (scoreArray.size() < NUM_OF_SCORE_COMPONENTS)
+		{
+			scoreArray.push_back(std::to_string(player->getScore()));
+			newBest = true;
+		}
+		else if (player->getScore() > std::stoi(scoreArray[NUM_OF_SCORE_COMPONENTS - 1]))
+		{
+			scoreArray[NUM_OF_SCORE_COMPONENTS - 1] = std::to_string(player->getScore());
+			newBest = true;
+		}
+
+		if (newBest)
 		{
 			std::sort(scoreArray.begin(), scoreArray.end(), [](const std::string& strNum1, const std::string& strNum2)
 			{
@@ -431,22 +444,6 @@ void Game::isGameOver()
 	}
 }
 
-bool Game::isNewBestScore()
-{
-	bool newBest = false;
-	if (scoreArray.size() < NUM_OF_SCORE_COMPONENTS)
-	{
-		scoreArray.push_back(std::to_string(player->getScore()));
-		newBest = true;
-	}
-	else if (player->getScore() > std::stoi(scoreArray[NUM_OF_SCORE_COMPONENTS - 1]))
-	{
-		scoreArray[NUM_OF_SCORE_COMPONENTS - 1] = std::to_string(player->getScore());
-		newBest = true;
-	}
-
-	return newBest;
-}
 // File I/0
 
 void Game::getScoreList()

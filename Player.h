@@ -32,7 +32,7 @@ private:
 	const sf::Texture bulletTexture;
 	// Shooting
 	sf::Clock shotTimer;
-	const float shootDelay = 100.f;
+	const float shootDelay = 150.f;
 	bool isFirstBullet = true;
 	const int numberOfBullets = NUMBER_OF_BULLETS;
 

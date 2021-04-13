@@ -5,7 +5,8 @@ Asteroid::Asteroid(const sf::Texture& _asteroidTextureLevel0 , const sf::Texture
 	:
 	asteroidTextureLevel0{ _asteroidTextureLevel0},
 	asteroidTextureLevel1{ _asteroidTextureLevel1},
-	level{_level}
+	level{_level},
+	madeDamage{false}
 {
 	scale(sf::Vector2f(0.060f, 0.060f));
 	setOrigin(getPosition().x + getLocalBounds().width / 2, getPosition().y + getLocalBounds().height / 2);

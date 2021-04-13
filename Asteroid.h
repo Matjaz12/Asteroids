@@ -14,6 +14,7 @@ private:
 	const sf::Texture asteroidTextureLevel1;
 
 public:
+	bool madeDamage;
 	void intializeAsteroid();
 	void moveAsteroid(const float speed);
 	void downSize();

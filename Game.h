@@ -95,7 +95,6 @@ private:
 	// Game Logic
 	void checkForCollision();
 	void isGameOver();
-	bool isNewBestScore();
 
 	// File I/O
 	void getScoreList();
