@@ -2,6 +2,6 @@
 Simple Retro Game written in C++ using SFML Multi-Media Library to render graphics
 
 
-Gameplay Demo:
+## Gameplay Demo:
 
 ![Alt Text](gifs/game_play_gif.gif)
